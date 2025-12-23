@@ -1,0 +1,89 @@
+---
+- name: Deploy CLI Tools
+  hosts: all
+  become: true
+  vars_files:
+    - tools_versions.yml
+
+  tasks:
+    # ---------------------------------------------------------
+    # STRATEGY A: Debian Packages (.deb)
+    # ---------------------------------------------------------
+    
+    # 1. Download all .deb files
+    - name: "Download .deb tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/tmp/{{ item.key }}.deb"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'deb'
+      register: deb_downloads
+
+    # 2. Install them (Looping over the download results)
+    - name: "Install .deb via apt"
+      apt:
+        deb: "{{ item.dest }}"
+      # We loop over the results of the previous task
+      loop: "{{ deb_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      # Logic:
+      # 1. 'not item.skipped': Ensure we only look at 'deb' types
+      # 2. 'item.changed': Only run apt if we downloaded a new file (Optimization)
+      #    (Remove 'and item.changed' if you want to force reinstall every run)
+      when: not item.skipped | default(false)
+
+    # ---------------------------------------------------------
+    # STRATEGY B: Tarballs / Archives
+    # ---------------------------------------------------------
+
+    # 1. Download all Archives
+    - name: "Download archive tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/tmp/{{ item.key }}.archive"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'tar'
+      register: archive_downloads
+
+    # 2. Unarchive and Install
+    - name: "Unarchive and install binary"
+      unarchive:
+        src: "{{ item.dest }}"
+        dest: "/usr/local/bin"
+        remote_src: yes
+        include: ["{{ item.item.value.binary_name }}"]
+        mode: '0755'
+      loop: "{{ archive_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      # Same logic: Only unarchive if the tarball was just downloaded/updated
+      when: not item.skipped | default(false)
+
+    # ---------------------------------------------------------
+    # STRATEGY C: Compressed Binaries (.bz2, .gz, etc.)
+    # ---------------------------------------------------------
+
+    # 1. Download compressed binaries
+    - name: "Download compressed binary tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/tmp/{{ item.key }}.bz2"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+        force: yes
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'bz2'
+      register: bz2_downloads
+
+    # 2. Decompress and install
+    - name: "Decompress and install bz2 binary"
+      shell: |
+        bunzip2 -c "{{ item.dest }}" > "/usr/local/bin/{{ item.item.value.binary_name }}"
+        chmod 0755 "/usr/local/bin/{{ item.item.value.binary_name }}"
+      loop: "{{ bz2_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      when: not item.skipped | default(false)
+

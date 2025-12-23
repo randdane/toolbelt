@@ -1,0 +1,14 @@
+tools:
+  bat:
+    version: 0.26.1
+    github_repo: sharkdp/bat
+    url_template: https://github.com/sharkdp/bat/releases/download/v{version}/bat_{version}_amd64.deb
+    install_type: deb
+    checksum: sha256:ad59954aa1540e526f97267f60557ea5ef4c7dcf91a0811254134537cb353a3c
+  restic:
+    version: 0.18.1
+    github_repo: restic/restic
+    url_template: https://github.com/restic/restic/releases/download/v{version}/restic_{version}_linux_amd64.bz2
+    install_type: bz2
+    binary_name: restic
+
