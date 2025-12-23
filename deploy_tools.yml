@@ -48,18 +48,38 @@
       when: item.value.install_type == 'tar'
       register: archive_downloads
 
-    # 2. Unarchive and Install
-    - name: "Unarchive and install binary"
-      unarchive:
-        src: "{{ item.dest }}"
-        dest: "/usr/local/bin"
-        remote_src: yes
-        include: ["{{ item.item.value.binary_name }}"]
+    # 2. Create extraction directories
+    - name: "Create temp extraction directory"
+      file:
+        path: "/tmp/{{ item.item.key }}_extract"
+        state: directory
         mode: '0755'
       loop: "{{ archive_downloads.results }}"
       loop_control:
         label: "{{ item.item.key }}"
-      # Same logic: Only unarchive if the tarball was just downloaded/updated
+      when: not item.skipped | default(false)
+
+    # 3. Extract tarballs
+    - name: "Extract tarball to temp directory"
+      unarchive:
+        src: "{{ item.dest }}"
+        dest: "/tmp/{{ item.item.key }}_extract"
+        remote_src: yes
+      loop: "{{ archive_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      when: not item.skipped | default(false)
+      register: tar_extracts
+
+    # 4. Find and copy the binary to /usr/local/bin
+    - name: "Install binary from extracted archive"
+      shell: |
+        find "/tmp/{{ item.item.item.key }}_extract" -name "{{ item.item.item.value.binary_name }}" -type f -exec cp {} /usr/local/bin/ \;
+        chmod 0755 "/usr/local/bin/{{ item.item.item.value.binary_name }}"
+        rm -rf "/tmp/{{ item.item.item.key }}_extract"
+      loop: "{{ tar_extracts.results }}"
+      loop_control:
+        label: "{{ item.item.item.key }}"
       when: not item.skipped | default(false)
 
     # ---------------------------------------------------------
@@ -87,3 +107,16 @@
         label: "{{ item.item.key }}"
       when: not item.skipped | default(false)
 
+    # ---------------------------------------------------------
+    # STRATEGY D: Shell Scripts
+    # ---------------------------------------------------------
+
+    # 1. Download and install scripts directly
+    - name: "Download and install script tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/usr/local/bin/{{ item.value.binary_name | default(item.key) }}"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+        mode: '0755'
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'script'

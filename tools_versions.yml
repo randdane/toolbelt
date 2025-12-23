@@ -1,14 +1,73 @@
 tools:
+  fzf:
+    version: 0.67.0
+    github_repo: junegunn/fzf
+    url_template: https://github.com/junegunn/fzf/releases/download/v{version}/fzf-{version}-linux_amd64.tar.gz
+    install_type: tar
+    binary_name: fzf
+    notes: Use eval "$(fzf --bash)" in ~/.bashrc for keybindings/completion
+    checksum: sha256:4be08018ca37b32518c608741933ea335a406de3558242b60619e98f25be2be1
+  fzf-git:
+    version: main
+    github_repo: junegunn/fzf-git.sh
+    url_template: https://raw.githubusercontent.com/junegunn/fzf-git.sh/refs/heads/main/fzf-git.sh
+    install_type: script
+    binary_name: fzf-git.sh
+    notes: Repo explicitly supports bash, zsh, and fish; source the script from ~/.bashrc
   bat:
     version: 0.26.1
     github_repo: sharkdp/bat
     url_template: https://github.com/sharkdp/bat/releases/download/v{version}/bat_{version}_amd64.deb
     install_type: deb
     checksum: sha256:ad59954aa1540e526f97267f60557ea5ef4c7dcf91a0811254134537cb353a3c
+    notes: Configure BAT_THEME in ~/.bashrc instead of ~/.zshrc
+  eza:
+    version: 0.23.4
+    github_repo: eza-community/eza
+    url_template: https://github.com/eza-community/eza/releases/download/v{version}/eza_x86_64-unknown-linux-gnu.tar.gz
+    install_type: tar
+    binary_name: eza
+    notes: Put your alias ls='eza ...' in ~/.bashrc
+    checksum: sha256:0c38665440226cd8bef5d1d4f3bc6ff77c927fb0d68b752739105db7ab5b358d
+  tlrc:
+    version: 1.12.0
+    github_repo: tldr-pages/tlrc
+    url_template: https://github.com/tldr-pages/tlrc/releases/download/v{version}/tlrc-v{version}-x86_64-unknown-linux-gnu.deb
+    install_type: deb
+    notes: CLI binary; no zsh-only behavior
+    checksum: sha256:5bb8524d9316f3e2b38c3064518223dae138c4ae1d78bc6682724441466612a8
+  zoxide:
+    version: 0.9.8
+    github_repo: ajeetdsouza/zoxide
+    url_template: https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh
+    install_type: script
+    binary_name: zoxide-install.sh
+    notes: Use eval "$(zoxide init bash)" instead of zsh, and optional alias cd='z'
+      in ~/.bashrc
+    checksum: sha256:c5d94701cfdd87d19f3989c1239e921d4ff95d4c0742b16beca061618c937bf0
+  ripgrep:
+    version: 15.1.0
+    github_repo: BurntSushi/ripgrep
+    url_template: https://github.com/BurntSushi/ripgrep/releases/download/{version}/ripgrep_{version}-1_amd64.deb
+    install_type: deb
+    checksum: sha256:62ce186675c71edbc7c48a67dc36f986974551354d6ce63726adc2d85aad802c
+  delta:
+    version: 0.18.2
+    github_repo: dandavison/delta
+    url_template: https://github.com/dandavison/delta/releases/download/{version}/git-delta_{version}_amd64.deb
+    install_type: deb
+    notes: Configured via ~/.gitconfig, independent of shell
+    checksum: sha256:1658c7b61825d411b50734f34016101309e4b6e7f5799944cf8e4ac542cebd7f
+  fastfetch:
+    version: 2.56.1
+    github_repo: fastfetch-cli/fastfetch
+    url_template: https://github.com/fastfetch-cli/fastfetch/releases/download/{version}/fastfetch-linux-amd64.deb
+    install_type: deb
+    checksum: sha256:5c765e77255ffe90ad89324fd11b9559ea34466594158544785446583dd0edc9
   restic:
     version: 0.18.1
     github_repo: restic/restic
     url_template: https://github.com/restic/restic/releases/download/v{version}/restic_{version}_linux_amd64.bz2
     install_type: bz2
     binary_name: restic
-
+    checksum: sha256:680838f19d67151adba227e1570cdd8af12c19cf1735783ed1ba928bc41f363d
