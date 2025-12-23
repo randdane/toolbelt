@@ -71,3 +71,11 @@ tools:
     install_type: bz2
     binary_name: restic
     checksum: sha256:680838f19d67151adba227e1570cdd8af12c19cf1735783ed1ba928bc41f363d
+  jq:
+    version: 1.8.1
+    github_repo: jqlang/jq
+    url_template: https://github.com/jqlang/jq/releases/download/jq-{version}/jq-linux-amd64
+    install_type: binary
+    binary_name: jq
+    notes: Command-line JSON processor
+    checksum: sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d

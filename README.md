@@ -8,7 +8,7 @@ ToolBelt automatically tracks, updates, and deploys your favorite command-line t
 
 - 🔄 **Automatic Version Tracking**: Queries GitHub API for latest releases
 - 🔐 **Checksum Verification**: Automatically calculates and verifies SHA256 checksums
-- 📦 **Multiple Install Methods**: Supports `.deb` packages, tarballs, compressed binaries, and shell scripts
+- 📦 **Multiple Install Methods**: Supports `.deb` packages, tarballs, compressed binaries, direct binaries, and shell scripts
 - 🎯 **Declarative Configuration**: Simple YAML-based tool definitions
 - 🚀 **Idempotent Deployment**: Ansible ensures tools are only updated when needed
 - 🌐 **Multi-Host Support**: Deploy to one or many systems simultaneously
@@ -63,7 +63,7 @@ tools:
 | `version` | Yes | Current version number (without 'v' prefix) |
 | `github_repo` | Yes | GitHub repository in `owner/repo` format |
 | `url_template` | Yes | Download URL with `{version}` placeholder |
-| `install_type` | Yes | Installation method: `deb`, `tar`, `bz2`, or `script` |
+| `install_type` | Yes | Installation method: `deb`, `tar`, `bz2`, `binary`, or `script` |
 | `checksum` | No* | SHA256 checksum in format `sha256:<hash>` |
 | `binary_name` | For `tar`/`bz2`/`script` | Name of the binary to extract/install (or script filename) |
 
@@ -120,6 +120,7 @@ This playbook:
 - Installs `.deb` packages via `apt`
 - Extracts and installs binaries from tarballs to `/usr/local/bin`
 - Decompresses and installs `.bz2` binaries to `/usr/local/bin`
+- Downloads pre-compiled binaries directly to `/usr/local/bin` with executable permissions
 - Downloads shell scripts directly to `/usr/local/bin` with executable permissions
 - Runs idempotently (only updates when needed)
 
@@ -221,6 +222,25 @@ ansible-playbook deploy_tools.yml --tags "bat"
 
 3. Deploy with `ansible-playbook deploy_tools.yml`
 
+### For Direct Binaries (no compression)
+
+1. Add to `tools_versions.yml`:
+   ```yaml
+   tools:
+     jq:
+       version: 1.8.1
+       github_repo: jqlang/jq
+       url_template: https://github.com/jqlang/jq/releases/download/jq-{version}/jq-linux-amd64
+       install_type: binary
+       binary_name: jq
+   ```
+
+2. Run `uv run update_versions.py`
+
+3. Deploy with `ansible-playbook deploy_tools.yml`
+
+> **Note**: Use this for pre-compiled static binaries that don't require extraction (files without extensions like `jq-linux-amd64`)
+
 ### For Shell Scripts
 
 1. Add to `tools_versions.yml`:
@@ -288,6 +308,10 @@ ansible-playbook deploy_tools.yml --tags "bat"
 2. Decompress directly to `/usr/local/bin/<binary_name>`
 3. Set executable permissions (`0755`)
 
+**For direct binaries:**
+1. Download directly to `/usr/local/bin/<binary_name>` with checksum verification
+2. Set executable permissions (`0755`) automatically
+
 **For shell scripts:**
 1. Download directly to `/usr/local/bin/<binary_name>` with checksum verification
 2. Set executable permissions (`0755`) automatically
@@ -349,7 +373,7 @@ toolbelt/
 
 ### Adding Support for New Install Types
 
-Currently supported: `deb`, `tar`, `bz2`, `script`
+Currently supported: `deb`, `tar`, `bz2`, `binary`, `script`
 
 To add support for other package formats (e.g., `rpm`, `snap`):
 
@@ -385,6 +409,7 @@ Built with:
 - [fastfetch](https://github.com/fastfetch-cli/fastfetch) - System information tool
 - [fzf](https://github.com/junegunn/fzf) - Command-line fuzzy finder
 - [fzf-git](https://github.com/junegunn/fzf-git.sh) - Git integration for fzf
+- [jq](https://github.com/jqlang/jq) - Command-line JSON processor
 - [restic](https://github.com/restic/restic) - Fast, secure backup program
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - Fast search tool
 - [tlrc](https://github.com/tldr-pages/tlrc) - tldr client in Rust

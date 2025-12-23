@@ -120,3 +120,17 @@
         mode: '0755'
       loop: "{{ tools | dict2items }}"
       when: item.value.install_type == 'script'
+
+    # ---------------------------------------------------------
+    # STRATEGY E: Direct Binaries
+    # ---------------------------------------------------------
+
+    # 1. Download and install pre-compiled binaries directly
+    - name: "Download and install binary tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/usr/local/bin/{{ item.value.binary_name }}"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+        mode: '0755'
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'binary'
