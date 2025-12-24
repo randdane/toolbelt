@@ -82,6 +82,43 @@
         label: "{{ item.item.item.key }}"
       when: not item.skipped | default(false)
 
+
+    # ---------------------------------------------------------
+    # STRATEGY B2: Full Directory Tarballs (e.g., neovim)
+    # ---------------------------------------------------------
+
+    # 1. Download full directory archives
+    - name: "Download full directory archive tools"
+      get_url:
+        url: "{{ item.value.url_template | replace('{version}', item.value.version) }}"
+        dest: "/tmp/{{ item.key }}.archive"
+        checksum: "{{ item.value.checksum | default(omit) }}"
+      loop: "{{ tools | dict2items }}"
+      when: item.value.install_type == 'tar_full'
+      register: tar_full_downloads
+
+    # 2. Extract to temp directory
+    - name: "Extract full directory tarball"
+      unarchive:
+        src: "{{ item.dest }}"
+        dest: "/tmp/"
+        remote_src: yes
+      loop: "{{ tar_full_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      when: not item.skipped | default(false)
+      register: tar_full_extracts
+
+    # 3. Copy entire directory structure to /usr/local/
+    - name: "Install full directory structure"
+      shell: |
+        rsync -av "/tmp/{{ item.item.value.extract_dir }}/" /usr/local/
+        rm -rf "/tmp/{{ item.item.value.extract_dir }}"
+      loop: "{{ tar_full_downloads.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      when: not item.skipped | default(false)
+
     # ---------------------------------------------------------
     # STRATEGY C: Compressed Binaries (.bz2, .gz, etc.)
     # ---------------------------------------------------------

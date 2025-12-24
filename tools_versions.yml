@@ -79,3 +79,12 @@ tools:
     binary_name: jq
     notes: Command-line JSON processor
     checksum: sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d
+  neovim:
+    version: 0.11.5
+    github_repo: neovim/neovim
+    url_template: https://github.com/neovim/neovim/releases/download/v{version}/nvim-linux-x86_64.tar.gz
+    install_type: tar_full
+    extract_dir: nvim-linux-x86_64
+    binary_name: nvim
+    notes: Hyperextensible Vim-based text editor; requires full directory structure installation
+    checksum: sha256:b2f91117be5b5ea39edd7297156dc2a4a8df4add6c95a90809a8df19e7ab6f52
